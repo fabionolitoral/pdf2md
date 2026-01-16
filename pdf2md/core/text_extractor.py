@@ -9,7 +9,7 @@ from pdf2md.utils.logger import obter_logger
 logger = obter_logger(__name__)
 
 
-class Extratortexto:
+class ExtratorTexto:  # ✅ CORRIGIDO: Era "Extratortexto"
     """Extrai texto de PDFs preservando estrutura e formatação."""
 
     def __init__(self, documento: fitz.Document, verbose: bool = False):
@@ -112,7 +112,6 @@ class Extratortexto:
 
         for bloco in blocos:
             altura = bloco['altura']
-            texto = bloco['texto']
 
             # Heurística: títulos têm altura maior
             if altura > altura_media * 1.5:

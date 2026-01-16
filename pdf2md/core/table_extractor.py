@@ -3,7 +3,7 @@ Extrator de tabelas de PDFs.
 """
 
 import fitz
-from typing import List, Dict, Tuple
+from typing import List, Dict
 from pdf2md.utils.logger import obter_logger
 
 logger = obter_logger(__name__)
@@ -23,7 +23,7 @@ class ExtratorTabelas:
         self.documento = documento
         self.verbose = verbose
 
-    def detectar_tabelas_pagina(self, numero_pagina: int) -> List[Dict]:
+    def detectar_tabelas_pagina(self, numero_pagina: int) -> List:
         """
         Detecta tabelas em uma página.
 
@@ -37,7 +37,10 @@ class ExtratorTabelas:
             pagina = self.documento[numero_pagina]
 
             # Usar a detecção nativa do PyMuPDF
-            tabelas = pagina.find_tables()
+            tabelas_finder = pagina.find_tables()  # ✅ Retorna TableFinder
+
+            # ✅ CORREÇÃO: Converter para lista
+            tabelas = list(tabelas_finder.tables) if tabelas_finder else []
 
             if self.verbose:
                 logger.info(f"Página {numero_pagina + 1}: {len(tabelas)} tabelas detectadas")
@@ -69,7 +72,7 @@ class ExtratorTabelas:
             linhas_markdown = []
 
             # Primeira linha como cabeçalho
-            cabecalho = [str(celula).strip() for celula in dados[0]]
+            cabecalho = [str(celula or "").strip() for celula in dados[0]]  # ✅ Tratar None
             linhas_markdown.append("| " + " | ".join(cabecalho) + " |")
 
             # Separador
@@ -78,7 +81,7 @@ class ExtratorTabelas:
 
             # Linhas de dados
             for linha in dados[1:]:
-                celulas = [str(celula).strip() for celula in linha]
+                celulas = [str(celula or "").strip() for celula in linha]  # ✅ Tratar None
                 linhas_markdown.append("| " + " | ".join(celulas) + " |")
 
             return "\n".join(linhas_markdown)

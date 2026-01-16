@@ -1,7 +1,6 @@
 """
 Comandos principais da aplicação CLI.
 """
-
 import click
 from pathlib import Path
 from pdf2md.cli.arguments import VALIDADOR_PDF, VALIDADOR_DIRETORIO
@@ -11,9 +10,10 @@ from pdf2md.utils.logger import obter_logger
 logger = obter_logger(__name__)
 
 
-@click.group()
+@click.group(invoke_without_command=True)  # ✅ CORREÇÃO APLICADA
+@click.pass_context  # ✅ CORREÇÃO APLICADA
 @click.version_option(version="1.0.0", prog_name="pdf2md")
-def cli():
+def cli(ctx):  # ✅ CORREÇÃO APLICADA
     """
     📄 PDF to Markdown Converter
 
@@ -30,7 +30,8 @@ def cli():
         # Especificar pasta de saída
         pdf2md converter arquivo.pdf -o output/
     """
-    pass
+    if ctx.invoked_subcommand is None:  # ✅ CORREÇÃO APLICADA
+        click.echo(ctx.get_help())  # ✅ CORREÇÃO APLICADA
 
 
 @cli.command()
