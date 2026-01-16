@@ -3,7 +3,9 @@ Extrator de texto de PDFs com preservação de estrutura.
 """
 
 from pathlib import Path
+
 import fitz  # PyMuPDF
+
 from pdf2md.utils.logger import obter_logger
 
 logger = obter_logger(__name__)
@@ -39,7 +41,9 @@ class ExtratorTexto:  # ✅ CORRIGIDO: Era "Extratortexto"
             texto = pagina.get_text()
 
             if self.verbose:
-                logger.info(f"Página {numero_pagina + 1}: {len(texto)} caracteres extraídos")
+                logger.info(
+                    f"Página {numero_pagina + 1}: {len(texto)} caracteres extraídos"
+                )
 
             return texto
 
@@ -71,15 +75,17 @@ class ExtratorTexto:  # ✅ CORRIGIDO: Era "Extratortexto"
                     if not texto or not texto.strip():
                         continue
 
-                    blocos_processados.append({
-                        'x0': x0,
-                        'y0': y0,
-                        'x1': x1,
-                        'y1': y1,
-                        'texto': texto.strip(),
-                        'largura': x1 - x0,
-                        'altura': y1 - y0
-                    })
+                    blocos_processados.append(
+                        {
+                            "x0": x0,
+                            "y0": y0,
+                            "x1": x1,
+                            "y1": y1,
+                            "texto": texto.strip(),
+                            "largura": x1 - x0,
+                            "altura": y1 - y0,
+                        }
+                    )
 
             return blocos_processados
 
@@ -97,29 +103,25 @@ class ExtratorTexto:  # ✅ CORRIGIDO: Era "Extratortexto"
         Returns:
             Dicionário com blocos classificados por tipo
         """
-        blocos_classificados = {
-            'titulos': [],
-            'subtitulos': [],
-            'corpo': []
-        }
+        blocos_classificados = {"titulos": [], "subtitulos": [], "corpo": []}
 
         if not blocos:
             return blocos_classificados
 
         # Calcular altura média dos blocos
-        alturas = [b['altura'] for b in blocos]
+        alturas = [b["altura"] for b in blocos]
         altura_media = sum(alturas) / len(alturas) if alturas else 0
 
         for bloco in blocos:
-            altura = bloco['altura']
+            altura = bloco["altura"]
 
             # Heurística: títulos têm altura maior
             if altura > altura_media * 1.5:
-                blocos_classificados['titulos'].append(bloco)
+                blocos_classificados["titulos"].append(bloco)
             elif altura > altura_media * 1.2:
-                blocos_classificados['subtitulos'].append(bloco)
+                blocos_classificados["subtitulos"].append(bloco)
             else:
-                blocos_classificados['corpo'].append(bloco)
+                blocos_classificados["corpo"].append(bloco)
 
         return blocos_classificados
 
@@ -150,7 +152,7 @@ class ExtratorTexto:  # ✅ CORRIGIDO: Era "Extratortexto"
             Texto limpo
         """
         # Remover espaços em branco excessivos
-        linhas = [linha.strip() for linha in texto.split('\n')]
+        linhas = [linha.strip() for linha in texto.split("\n")]
         linhas = [linha for linha in linhas if linha]
 
-        return '\n'.join(linhas)
+        return "\n".join(linhas)

@@ -21,14 +21,14 @@ def validar_arquivo_pdf(caminho: Path) -> bool:
     if not caminho.exists():
         return False
 
-    if caminho.suffix.lower() != '.pdf':
+    if caminho.suffix.lower() != ".pdf":
         return False
 
     # Verificar assinatura do PDF
     try:
-        with open(caminho, 'rb') as f:
+        with open(caminho, "rb") as f:
             assinatura = f.read(4)
-            return assinatura == b'%PDF'
+            return assinatura == b"%PDF"
     except Exception:
         return False
 

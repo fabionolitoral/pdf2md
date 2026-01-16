@@ -21,14 +21,11 @@ def obter_logger(nome: str) -> logging.Logger:
 
     if not logger.handlers:
         # Criar diretório de logs se não existir
-        log_dir = Path('logs')
+        log_dir = Path("logs")
         log_dir.mkdir(exist_ok=True)
 
         # Handler para arquivo
-        arquivo_handler = logging.FileHandler(
-            log_dir / 'pdf2md.log',
-            encoding='utf-8'
-        )
+        arquivo_handler = logging.FileHandler(log_dir / "pdf2md.log", encoding="utf-8")
         arquivo_handler.setLevel(logging.DEBUG)
 
         # Handler para console
@@ -37,8 +34,8 @@ def obter_logger(nome: str) -> logging.Logger:
 
         # Formato
         formato = logging.Formatter(
-            '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-            datefmt='%Y-%m-%d %H:%M:%S'
+            "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+            datefmt="%Y-%m-%d %H:%M:%S",
         )
 
         arquivo_handler.setFormatter(formato)

@@ -2,8 +2,9 @@
 Parser de argumentos e configurações do CLI.
 """
 
-import click
 from pathlib import Path
+
+import click
 
 
 class ValidarArquivoPDF(click.ParamType):
@@ -21,7 +22,7 @@ class ValidarArquivoPDF(click.ParamType):
         if not arquivo.exists():
             self.fail(f"Arquivo '{value}' não encontrado", param, ctx)
 
-        if arquivo.suffix.lower() != '.pdf':
+        if arquivo.suffix.lower() != ".pdf":
             self.fail(f"Arquivo '{value}' não é um PDF válido", param, ctx)
 
         return arquivo
@@ -43,11 +44,7 @@ class ValidarDiretorioSaida(click.ParamType):
             diretorio.mkdir(parents=True, exist_ok=True)
             return diretorio
         except PermissionError:
-            self.fail(
-                f"Sem permissão para criar diretório '{value}'",
-                param,
-                ctx
-            )
+            self.fail(f"Sem permissão para criar diretório '{value}'", param, ctx)
         except Exception as e:
             self.fail(f"Erro ao criar diretório: {e}", param, ctx)
 

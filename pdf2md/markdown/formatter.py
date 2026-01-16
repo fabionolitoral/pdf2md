@@ -2,7 +2,8 @@
 Formatador de Markdown - converte elementos extraídos para Markdown.
 """
 
-from typing import List, Dict, Any
+from typing import Any, Dict, List
+
 from pdf2md.utils.logger import obter_logger
 
 logger = obter_logger(__name__)
@@ -94,10 +95,7 @@ class FormataadorMarkdown:
             logger.info("Tabela adicionada ao documento")
 
     def adicionar_imagem(
-        self,
-        caminho_relativo: str,
-        titulo: str = "",
-        descricao: str = ""
+        self, caminho_relativo: str, titulo: str = "", descricao: str = ""
     ) -> None:
         """
         Adiciona uma imagem ao documento.
@@ -121,11 +119,7 @@ class FormataadorMarkdown:
         if self.verbose:
             logger.info(f"Imagem adicionada: {caminho_relativo}")
 
-    def adicionar_codigo(
-        self,
-        codigo: str,
-        linguagem: str = ""
-    ) -> None:
+    def adicionar_codigo(self, codigo: str, linguagem: str = "") -> None:
         """
         Adiciona um bloco de código ao documento.
 
@@ -148,7 +142,7 @@ class FormataadorMarkdown:
         if not texto or not texto.strip():
             return
 
-        linhas = texto.strip().split('\n')
+        linhas = texto.strip().split("\n")
         for linha in linhas:
             if linha.strip():
                 self.conteudo.append(f"> {linha}\n")
@@ -224,16 +218,15 @@ class FormataadorMarkdown:
             Texto sanitizado
         """
         # Remover caracteres de controle (exceto \n e \t)
-        texto_limpo = ''.join(
-            char for char in texto
-            if ord(char) >= 32 or char in '\n\t'
+        texto_limpo = "".join(
+            char for char in texto if ord(char) >= 32 or char in "\n\t"
         )
 
         # Normalizar espaços em branco excessivos
-        linhas = [linha.strip() for linha in texto_limpo.split('\n')]
+        linhas = [linha.strip() for linha in texto_limpo.split("\n")]
         linhas = [linha for linha in linhas if linha]
 
-        return ' '.join(linhas)
+        return " ".join(linhas)
 
     def obter_estatisticas(self) -> Dict[str, int]:
         """
@@ -245,8 +238,8 @@ class FormataadorMarkdown:
         conteudo_completo = self.obter_conteudo()
 
         return {
-            'total_caracteres': len(conteudo_completo),
-            'total_linhas': len(conteudo_completo.split('\n')),
-            'total_palavras': len(conteudo_completo.split()),
-            'total_elementos': len(self.conteudo)
+            "total_caracteres": len(conteudo_completo),
+            "total_linhas": len(conteudo_completo.split("\n")),
+            "total_palavras": len(conteudo_completo.split()),
+            "total_elementos": len(self.conteudo),
         }

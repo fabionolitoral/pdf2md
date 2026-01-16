@@ -2,10 +2,12 @@
 Processador OCR para PDFs escaneados.
 """
 
+from io import BytesIO
 from pathlib import Path
+
 import fitz
 from PIL import Image
-from io import BytesIO
+
 from pdf2md.utils.logger import obter_logger
 
 logger = obter_logger(__name__)
@@ -15,10 +17,7 @@ class ProcessadorOCR:
     """Processa OCR em PDFs escaneados."""
 
     def __init__(
-        self,
-        documento: fitz.Document,
-        idioma: str = 'por',
-        verbose: bool = False
+        self, documento: fitz.Document, idioma: str = "por", verbose: bool = False
     ):
         """
         Inicializa o processador OCR.
@@ -35,6 +34,7 @@ class ProcessadorOCR:
         # Tentar importar pytesseract
         try:
             import pytesseract
+
             self.pytesseract = pytesseract
             self.ocr_disponivel = True
         except ImportError:
@@ -66,10 +66,7 @@ class ProcessadorOCR:
             imagem = Image.open(BytesIO(img_data))
 
             # Executar OCR
-            texto = self.pytesseract.image_to_string(
-                imagem,
-                lang=self._mapear_idioma()
-            )
+            texto = self.pytesseract.image_to_string(imagem, lang=self._mapear_idioma())
 
             if self.verbose:
                 logger.info(f"Página {numero_pagina + 1}: OCR processado")
@@ -82,13 +79,8 @@ class ProcessadorOCR:
 
     def _mapear_idioma(self) -> str:
         """Mapeia código de idioma para código do Tesseract."""
-        mapeamento = {
-            'por': 'por',
-            'eng': 'eng',
-            'spa': 'spa',
-            'fra': 'fra'
-        }
-        return mapeamento.get(self.idioma, 'eng')
+        mapeamento = {"por": "por", "eng": "eng", "spa": "spa", "fra": "fra"}
+        return mapeamento.get(self.idioma, "eng")
 
     def processar_todas_paginas(self) -> str:
         """

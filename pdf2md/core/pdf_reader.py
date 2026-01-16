@@ -3,6 +3,7 @@ Leitor de PDF - extração de informações básicas.
 """
 
 from pathlib import Path
+
 import fitz  # PyMuPDF
 
 
@@ -35,11 +36,11 @@ class LeitorPDF:
             Dicionário com informações
         """
         return {
-            'total_paginas': self.documento.page_count,
-            'titulo': self.documento.metadata.get('title', ''),
-            'autor': self.documento.metadata.get('author', ''),
-            'tamanho': self.caminho_pdf.stat().st_size,
-            'criptografado': self.documento.is_pdf and self.documento.is_encrypted
+            "total_paginas": self.documento.page_count,
+            "titulo": self.documento.metadata.get("title", ""),
+            "autor": self.documento.metadata.get("author", ""),
+            "tamanho": self.caminho_pdf.stat().st_size,
+            "criptografado": self.documento.is_pdf and self.documento.is_encrypted,
         }
 
     def fechar(self):

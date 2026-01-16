@@ -2,10 +2,12 @@
 Extrator de imagens de PDFs.
 """
 
+from io import BytesIO
 from pathlib import Path
+
 import fitz
 from PIL import Image
-from io import BytesIO
+
 from pdf2md.utils.logger import obter_logger
 
 logger = obter_logger(__name__)
@@ -15,10 +17,7 @@ class ExtratorImagens:
     """Extrai imagens de PDFs."""
 
     def __init__(
-        self,
-        documento: fitz.Document,
-        diretorio_saida: Path,
-        verbose: bool = False
+        self, documento: fitz.Document, diretorio_saida: Path, verbose: bool = False
     ):
         """
         Inicializa o extrator de imagens.
@@ -54,7 +53,9 @@ class ExtratorImagens:
             imagens = pagina.get_images()
 
             if self.verbose:
-                logger.info(f"Página {numero_pagina + 1}: {len(imagens)} imagens encontradas")
+                logger.info(
+                    f"Página {numero_pagina + 1}: {len(imagens)} imagens encontradas"
+                )
 
             for indice_img, img_ref in enumerate(imagens):
                 try:
@@ -75,13 +76,15 @@ class ExtratorImagens:
 
                     pix_rgb.save(str(caminho_imagem))
 
-                    imagens_extraidas.append({
-                        'numero_pagina': numero_pagina + 1,
-                        'indice': indice_img + 1,
-                        'caminho': caminho_imagem,
-                        'nome_arquivo': nome_arquivo,
-                        'caminho_relativo': f"imagens/{nome_arquivo}"
-                    })
+                    imagens_extraidas.append(
+                        {
+                            "numero_pagina": numero_pagina + 1,
+                            "indice": indice_img + 1,
+                            "caminho": caminho_imagem,
+                            "nome_arquivo": nome_arquivo,
+                            "caminho_relativo": f"imagens/{nome_arquivo}",
+                        }
+                    )
 
                     if self.verbose:
                         logger.info(f"Imagem salva: {nome_arquivo}")
@@ -113,6 +116,6 @@ class ExtratorImagens:
     def obter_estatisticas(self) -> dict:
         """Retorna estatísticas sobre as imagens extraídas."""
         return {
-            'total_imagens': self.contador_imagens,
-            'diretorio_imagens': str(self.diretorio_imagens)
+            "total_imagens": self.contador_imagens,
+            "diretorio_imagens": str(self.diretorio_imagens),
         }

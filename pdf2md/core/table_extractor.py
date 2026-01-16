@@ -2,8 +2,10 @@
 Extrator de tabelas de PDFs.
 """
 
+from typing import Dict, List
+
 import fitz
-from typing import List, Dict
+
 from pdf2md.utils.logger import obter_logger
 
 logger = obter_logger(__name__)
@@ -43,7 +45,9 @@ class ExtratorTabelas:
             tabelas = list(tabelas_finder.tables) if tabelas_finder else []
 
             if self.verbose:
-                logger.info(f"Página {numero_pagina + 1}: {len(tabelas)} tabelas detectadas")
+                logger.info(
+                    f"Página {numero_pagina + 1}: {len(tabelas)} tabelas detectadas"
+                )
 
             return tabelas
 
@@ -72,7 +76,9 @@ class ExtratorTabelas:
             linhas_markdown = []
 
             # Primeira linha como cabeçalho
-            cabecalho = [str(celula or "").strip() for celula in dados[0]]  # ✅ Tratar None
+            cabecalho = [
+                str(celula or "").strip() for celula in dados[0]
+            ]  # ✅ Tratar None
             linhas_markdown.append("| " + " | ".join(cabecalho) + " |")
 
             # Separador
@@ -81,7 +87,9 @@ class ExtratorTabelas:
 
             # Linhas de dados
             for linha in dados[1:]:
-                celulas = [str(celula or "").strip() for celula in linha]  # ✅ Tratar None
+                celulas = [
+                    str(celula or "").strip() for celula in linha
+                ]  # ✅ Tratar None
                 linhas_markdown.append("| " + " | ".join(celulas) + " |")
 
             return "\n".join(linhas_markdown)
