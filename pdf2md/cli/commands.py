@@ -202,3 +202,139 @@ def _exibir_estatisticas(conversor):
 
     for chave, valor in stats.items():
         click.echo(f"  • {chave}: {valor}")
+
+@cli.command()
+@click.argument(
+    'diretorio_entrada',
+    type=VALIDADOR_DIRETORIO,
+    required=True
+)
+@click.option(
+    '-o', '--output',
+    type=VALIDADOR_DIRETORIO,
+    default='./output',
+    help='Diretório de saída (padrão: ./output)'
+)
+@click.option(
+    '--ocr',
+    is_flag=True,
+    help='Ativar OCR para PDFs escaneados'
+)
+@click.option(
+    '--extract-images',
+    is_flag=True,
+    help='Extrair imagens do PDF'
+)
+@click.option(
+    '--extract-tables',
+    is_flag=True,
+    default=True,
+    help='Extrair tabelas (padrão: ativado)'
+)
+@click.option(
+    '--language',
+    default='por',
+    help='Idioma para OCR (por, eng, spa, fra)'
+)
+@click.option(
+    '-v', '--verbose',
+    is_flag=True,
+    help='Modo detalhado'
+)
+def batch(diretorio_entrada, output, ocr, extract_images, extract_tables, language, verbose):
+    """
+    🗂️  Converte TODOS os PDFs de uma pasta
+
+    Exemplos:
+
+        # Converter todos PDFs da pasta 'livros'
+        pdf2md batch livros/
+
+        # Com OCR e extração de imagens
+        pdf2md batch livros/ --ocr --extract-images
+
+        # Especificar pasta de saída
+        pdf2md batch livros/ -o meus_markdowns/
+    """
+    from pdf2md.core.batch_converter import BatchConverter
+
+    try:
+        click.echo(
+            click.style(
+                f"\n🗂️  Conversão em Lote",
+                fg='cyan',
+                bold=True
+            )
+        )
+
+        click.echo(f"📂 Entrada: {diretorio_entrada}")
+        click.echo(f"📁 Saída: {output}\n")
+
+        conversor = BatchConverter(
+            diretorio_entrada=diretorio_entrada,
+            diretorio_saida=output,
+            ocr_habilitado=ocr,
+            extrair_imagens=extract_images,
+            extrair_tabelas=extract_tables,
+            idioma_ocr=language,
+            verbose=verbose
+        )
+
+        resultado = conversor.converter_todos()
+
+        # Exibir resumo
+        click.echo(
+            click.style(
+                "\n📊 Resumo da Conversão:",
+                fg='cyan',
+                bold=True
+            )
+        )
+
+        click.echo(f"  • Total de PDFs: {resultado['total_pdfs']}")
+        click.echo(
+            click.style(
+                f"  • Sucesso: {resultado['sucesso']}",
+                fg='green'
+            )
+        )
+
+        if resultado['falhas'] > 0:
+            click.echo(
+                click.style(
+                    f"  • Falhas: {resultado['falhas']}",
+                    fg='red'
+                )
+            )
+
+        # Listar falhas se houver
+        falhas = [r for r in resultado['resultados'] if r['status'] == 'falha']
+        if falhas:
+            click.echo(
+                click.style(
+                    "\n⚠️  PDFs com erro:",
+                    fg='yellow',
+                    bold=True
+                )
+            )
+            for falha in falhas:
+                click.echo(f"  • {falha['pdf']}: {falha['erro']}")
+
+        click.echo(
+            click.style(
+                f"\n✅ Conversão concluída!",
+                fg='green',
+                bold=True
+            )
+        )
+
+    except Exception as e:
+        click.echo(
+            click.style(
+                f"❌ Erro: {e}",
+                fg='red',
+                bold=True
+            ),
+            err=True
+        )
+        raise click.Exit(1)

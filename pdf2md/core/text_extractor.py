@@ -5,6 +5,7 @@ Extrator de texto de PDFs com preservação de estrutura.
 from pathlib import Path
 
 import fitz  # PyMuPDF
+import re
 
 from pdf2md.utils.logger import obter_logger
 
@@ -45,11 +46,43 @@ class ExtratorTexto:  # ✅ CORRIGIDO: Era "Extratortexto"
                     f"Página {numero_pagina + 1}: {len(texto)} caracteres extraídos"
                 )
 
+            texto = leitor_pdf.extrair_texto(pagina)
+            texto = normalizar_texto(texto)
             return texto
 
         except Exception as e:
             logger.error(f"Erro ao extrair texto da página {numero_pagina}: {e}")
             return ""
+
+    def limpar_linhas_vazias(texto_bruto: str) -> str:
+        linhas = texto_bruto.split("\n")
+        linhas_limpa = []
+        for linha in linhas:
+            if linha.strip() == "":
+                # Evita múltiplas linhas vazias seguidas
+                if len(linhas_limpa) == 0 or linhas_limpa[-1].strip() == "":
+                    continue
+            linhas_limpa.append(linha)
+        return "\n".join(linhas_limpa)
+
+    def normalizar_texto(texto: str) -> str:
+        # Remove múltiplas quebras de linha
+        texto = re.sub(r"\n\s*\n\s*\n+", "\n\n", texto)
+
+        # Remove espaços duplicados
+        texto = re.sub(r"[ \t]+", " ", texto)
+
+        # Remove linhas contendo apenas símbolos
+        texto = re.sub(r"^[^A-Za-z0-9]+$", "", texto, flags=re.MULTILINE)
+
+        # Remove linhas muito curtas e sem contexto (< 3 chars)
+        linhas = []
+        for linha in texto.split("\n"):
+            if len(linha.strip()) <= 2:
+                continue
+            linhas.append(linha)
+
+        return "\n".join(linhas)
 
     def extrair_blocos_estruturados(self, numero_pagina: int) -> list:
         """
