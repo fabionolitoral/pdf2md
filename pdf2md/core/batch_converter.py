@@ -80,9 +80,7 @@ class BatchConverter:
     def converter_todos(self) -> Dict:
         """
         Converte todos os PDFs encontrados.
-
-        Returns:
-            Dicionário com estatísticas da conversão em lote
+        Agora salva tudo diretamente na pasta de saída.
         """
         pdfs = self.listar_pdfs()
 
@@ -106,14 +104,12 @@ class BatchConverter:
             logger.info(f"[{i}/{len(pdfs)}] Convertendo: {pdf.name}")
 
             try:
-                # Criar subpasta para cada PDF
-                pasta_pdf = self.diretorio_saida / pdf.stem
-                pasta_pdf.mkdir(parents=True, exist_ok=True)
+                # 👉 Agora o diretório de saída é sempre o mesmo (sem subpastas)
+                pasta_saida = self.diretorio_saida
 
-                # Converter
                 conversor = PDFConverter(
                     caminho_pdf=pdf,
-                    diretorio_saida=pasta_pdf,
+                    diretorio_saida=pasta_saida,
                     ocr_habilitado=self.ocr_habilitado,
                     extrair_imagens=self.extrair_imagens,
                     extrair_tabelas=self.extrair_tabelas,
@@ -150,3 +146,4 @@ class BatchConverter:
             'falhas': falhas,
             'resultados': self.resultados
         }
+

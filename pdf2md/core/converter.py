@@ -1,20 +1,19 @@
 """
 Conversor principal de PDF para Markdown.
 """
-
 from datetime import datetime
 from pathlib import Path
-
 import fitz  # PyMuPDF
+from colorama import init, Fore, Style
+
+# Inicializa colorama para Windows
+init(autoreset=True)
 
 from pdf2md.core.image_extractor import ExtratorImagens
 from pdf2md.core.ocr_processor import ProcessadorOCR
 from pdf2md.core.table_extractor import ExtratorTabelas
 from pdf2md.core.text_extractor import ExtratorTexto
 from pdf2md.markdown.formatter import FormataadorMarkdown
-from pdf2md.utils.logger import obter_logger
-
-logger = obter_logger(__name__)
 
 
 class PDFConverter:
@@ -48,13 +47,11 @@ class PDFConverter:
         """
         self.caminho_pdf = Path(caminho_pdf)
 
-        # ✅ VALIDAÇÃO ADICIONADA
+        # ✅ VALIDAÇÃO
         if not self.caminho_pdf.exists():
             raise FileNotFoundError(f"Arquivo não encontrado: {self.caminho_pdf}")
-
         if not self.caminho_pdf.is_file():
             raise ValueError(f"O caminho não é um arquivo: {self.caminho_pdf}")
-
         if self.caminho_pdf.suffix.lower() != ".pdf":
             raise ValueError(f"O arquivo não é um PDF: {self.caminho_pdf}")
 
@@ -81,6 +78,46 @@ class PDFConverter:
             "tamanho_arquivo_saida": 0,
         }
 
+    def _log(self, mensagem: str, tipo: str = 'info'):
+        """
+        Exibe mensagens coloridas no console.
+
+        Args:
+            mensagem: Texto a ser exibido
+            tipo: Tipo de mensagem ('info', 'success', 'warning', 'error', 'processing')
+        """
+        if not self.verbose:
+            return
+
+        icones = {
+            'info': 'ℹ️',
+            'success': '✅',
+            'warning': '⚠️',
+            'error': '❌',
+            'processing': '⚙️',
+            'file': '📄',
+            'image': '🖼️',
+            'table': '📊',
+            'ocr': '🔍'
+        }
+
+        cores = {
+            'info': Fore.CYAN,
+            'success': Fore.GREEN,
+            'warning': Fore.YELLOW,
+            'error': Fore.RED,
+            'processing': Fore.MAGENTA,
+            'file': Fore.BLUE,
+            'image': Fore.BLUE,
+            'table': Fore.BLUE,
+            'ocr': Fore.YELLOW
+        }
+
+        icone = icones.get(tipo, 'ℹ️')
+        cor = cores.get(tipo, Fore.WHITE)
+
+        print(f"{cor}{icone} {mensagem}{Style.RESET_ALL}")
+
     def converter(self) -> Path:
         """
         Executa a conversão completa do PDF para Markdown.
@@ -91,7 +128,7 @@ class PDFConverter:
         inicio = datetime.now()
 
         try:
-            logger.info(f"Iniciando conversão: {self.caminho_pdf.name}")
+            self._log(f'📄 Iniciando conversão: {self.caminho_pdf.name}', 'file')
 
             # Adicionar título principal
             self.formatador.adicionar_titulo(self.caminho_pdf.stem, nivel=1)
@@ -102,15 +139,17 @@ class PDFConverter:
 
             try:
                 total_paginas = len(documento)
-                logger.info(f"PDF aberto: {total_paginas} páginas")
+                self._log(f'PDF aberto: {total_paginas} páginas', 'info')
 
                 # Processar cada página
                 for num_pagina in range(total_paginas):
+                    self._log(
+                        f'⚙️ Processando página {num_pagina + 1}/{total_paginas}...',
+                        'processing'
+                    )
+
                     self._processar_pagina(documento, num_pagina)
                     self.estatisticas["paginas_processadas"] += 1
-
-                    if self.verbose:
-                        print(f"Processada página {num_pagina + 1}/{total_paginas}")
 
             finally:
                 documento.close()
@@ -128,11 +167,16 @@ class PDFConverter:
                     arquivo_saida.stat().st_size
                 )
 
-            logger.info(f"Conversão concluída: {arquivo_saida}")
+            self._log(f'✅ Conversão concluída: {arquivo_saida}', 'success')
+
+            # Exibir estatísticas
+            if self.verbose:
+                self._exibir_estatisticas()
+
             return arquivo_saida
 
         except Exception as e:
-            logger.error(f"Erro durante conversão: {e}")
+            self._log(f'❌ Erro durante conversão: {e}', 'error')
             raise
 
     def _processar_pagina(self, documento: fitz.Document, numero_pagina: int) -> None:
@@ -143,9 +187,6 @@ class PDFConverter:
             documento: Documento PDF aberto
             numero_pagina: Número da página
         """
-        if self.verbose:
-            logger.info(f"Processando página {numero_pagina + 1}")
-
         # Adicionar separador de página
         if numero_pagina > 0:
             self.formatador.adicionar_linha_horizontal()
@@ -155,6 +196,7 @@ class PDFConverter:
 
         # Processar OCR se habilitado
         if self.ocr_habilitado:
+            self._log('🔍 Aplicando OCR...', 'ocr')
             processador_ocr = ProcessadorOCR(documento, self.idioma_ocr, self.verbose)
             texto_ocr = processador_ocr.processar_pagina_ocr(numero_pagina)
             if texto_ocr:
@@ -163,7 +205,6 @@ class PDFConverter:
         else:
             # Extrair texto normal
             blocos = extrator_texto.extrair_blocos_estruturados(numero_pagina)
-
             for bloco in blocos:
                 texto = bloco["texto"]
                 self.formatador.adicionar_paragrafo(texto)
@@ -171,9 +212,9 @@ class PDFConverter:
 
         # Extrair tabelas
         if self.extrair_tabelas:
+            self._log(f'📊 Extraindo tabelas da página {numero_pagina + 1}...', 'table')
             extrator_tabelas = ExtratorTabelas(documento, self.verbose)
             tabelas = extrator_tabelas.detectar_tabelas_pagina(numero_pagina)
-
             for tabela in tabelas:
                 md_tabela = extrator_tabelas.extrair_tabela_para_markdown(tabela)
                 if md_tabela:
@@ -182,11 +223,11 @@ class PDFConverter:
 
         # Extrair imagens
         if self.extrair_imagens:
+            self._log(f'🖼️ Extraindo imagens da página {numero_pagina + 1}...', 'image')
             extrator_imagens = ExtratorImagens(
                 documento, self.diretorio_saida, self.verbose
             )
             imagens = extrator_imagens.extrair_imagens_pagina(numero_pagina)
-
             for imagem in imagens:
                 self.formatador.adicionar_imagem(
                     caminho_relativo=imagem["caminho_relativo"],
@@ -210,9 +251,22 @@ class PDFConverter:
         with open(arquivo_saida, "w", encoding="utf-8") as f:
             f.write(conteudo)
 
-        logger.info(f"Arquivo Markdown salvo: {arquivo_saida}")
+        self._log(f'Arquivo Markdown salvo: {arquivo_saida}', 'info')
 
         return arquivo_saida
+
+    def _exibir_estatisticas(self):
+        """Exibe estatísticas da conversão."""
+        print(f"\n{Fore.CYAN}{'='*60}{Style.RESET_ALL}")
+        print(f"{Fore.YELLOW}📊 ESTATÍSTICAS DA CONVERSÃO{Style.RESET_ALL}")
+        print(f"{Fore.CYAN}{'='*60}{Style.RESET_ALL}")
+        print(f"  • Páginas processadas: {Fore.GREEN}{self.estatisticas['paginas_processadas']}{Style.RESET_ALL}")
+        print(f"  • Imagens extraídas: {Fore.GREEN}{self.estatisticas['imagens_extraidas']}{Style.RESET_ALL}")
+        print(f"  • Tabelas extraídas: {Fore.GREEN}{self.estatisticas['tabelas_extraidas']}{Style.RESET_ALL}")
+        print(f"  • Caracteres extraídos: {Fore.GREEN}{self.estatisticas['caracteres_extraidos']}{Style.RESET_ALL}")
+        print(f"  • Tempo total: {Fore.GREEN}{self.estatisticas['tempo_conversao']:.2f}s{Style.RESET_ALL}")
+        print(f"  • Tamanho do arquivo: {Fore.GREEN}{self.estatisticas['tamanho_arquivo_saida']} bytes{Style.RESET_ALL}")
+        print(f"{Fore.CYAN}{'='*60}{Style.RESET_ALL}\n")
 
     def obter_estatisticas(self) -> dict:
         """Retorna as estatísticas da conversão."""
